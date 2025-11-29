@@ -23,9 +23,11 @@ module.exports = {
 			});
 		}
 
-		// Inicia o jogo se ainda não foi iniciado
 		if (!session.isActive) {
-			session.start();
+			return interaction.reply({
+				content: '⚠️ O jogo ainda não começou! Aguarde todos os jogadores ficarem prontos.',
+				ephemeral: true,
+			});
 		}
 
 		// Verifica se é a vez do jogador

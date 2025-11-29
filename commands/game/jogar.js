@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { gameManager } = require('../../game/GameManager');
 
 module.exports = {
@@ -9,9 +9,9 @@ module.exports = {
 	async execute(interaction) {
 		const channelId = interaction.channelId;
 
-		if (gameManager.hasActiveSession(channelId)) {
+		if (gameManager.hasSession(channelId)) {
 			return interaction.reply({
-				content: '❌ Já existe um jogo ativo neste canal! Use `/desistir` para encerrar o jogo atual.',
+				content: '❌ Já existe um jogo neste canal! Use `/desistir` para encerrar o jogo atual.',
 				ephemeral: true,
 			});
 		}
@@ -32,18 +32,34 @@ module.exports = {
 			.setDescription(
 				'Um novo jogo foi criado!\n\n' +
 				'**Como jogar:**\n' +
-				'🎮 Use `/entrar` para participar do jogo\n' +
+				'🎮 Clique em **Entrar** para participar\n' +
+				'✅ Clique em **Pronto** quando estiver pronto\n' +
 				'🔍 Use `/dica` para revelar uma dica (uma por turno)\n' +
 				'💭 Use `/palpite <nome>` para dar seu palpite\n' +
 				'❌ Use `/desistir` para encerrar o jogo\n\n' +
-				'O jogo começará automaticamente quando o primeiro jogador pedir uma dica ou der um palpite!',
+				'⏳ O jogo começará automaticamente quando todos estiverem prontos!',
 			)
 			.addFields(
 				{ name: '👥 Jogadores', value: `<@${interaction.user.id}>`, inline: true },
-				{ name: '📊 Status', value: 'Aguardando jogadores...', inline: true },
+				{ name: '✅ Prontos', value: '0/1', inline: true },
 			)
 			.setTimestamp();
 
-		await interaction.reply({ embeds: [embed] });
+		const row = new ActionRowBuilder()
+			.addComponents(
+				new ButtonBuilder()
+					.setCustomId('game_join')
+					.setLabel('Entrar')
+					.setEmoji('🎮')
+					.setStyle(ButtonStyle.Primary),
+				new ButtonBuilder()
+					.setCustomId('game_ready')
+					.setLabel('Pronto')
+					.setEmoji('✅')
+					.setStyle(ButtonStyle.Success),
+			);
+
+		const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
+		session.messageId = message.id;
 	},
 };

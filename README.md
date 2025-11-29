@@ -5,42 +5,51 @@ Um jogo interativo de adivinhação de jogadores de futebol para Discord, inspir
 ## 🎮 Como Jogar
 
 1. **Iniciar o jogo**: Use `/jogar` para criar uma nova partida no canal
-2. **Entrar no jogo**: Outros jogadores usam `/entrar` para participar
-3. **Revelar dicas**: No seu turno, use `/dica` para revelar uma pista sobre o jogador misterioso
-4. **Dar palpite**: Use `/palpite <nome>` para tentar adivinhar quem é o craque
-5. **Desistir**: Use `/desistir` para encerrar o jogo e revelar a resposta
+2. **Entrar no jogo**: Clique no botão **Entrar** para participar
+3. **Ficar pronto**: Clique no botão **Pronto** quando estiver pronto para começar
+4. **Aguardar início**: O jogo começa automaticamente quando todos estiverem prontos (ordem dos jogadores é sorteada!)
+5. **Revelar dicas**: No seu turno, use `/dica` para revelar uma pista sobre o jogador misterioso
+6. **Dar palpite**: Use `/palpite <nome>` para tentar adivinhar quem é o craque
+7. **Desistir**: Use `/desistir` para encerrar o jogo e revelar a resposta
 
 ## 📋 Regras
 
+- A ordem dos jogadores é sorteada aleatoriamente ao início do jogo
 - Cada jogador tem um turno por rodada
-- Em cada turno, você pode revelar UMA dica E dar UM palpite
+- No seu turno, você pode revelar UMA dica E dar UM palpite
 - Se errar, passa a vez para o próximo jogador
 - O primeiro a acertar ganha o ponto!
 - Há 5 dicas progressivas, das mais genéricas às mais específicas
+- O jogo inicia automaticamente com a primeira dica revelada quando todos os jogadores estiverem prontos
 
 ## 🤖 Comandos Disponíveis
 
 ### Comandos do Jogo
-- `/jogar` - Inicia uma nova partida
-- `/entrar` - Entra em uma partida existente (antes de começar)
+- `/jogar` - Inicia uma nova partida (cria botões interativos)
 - `/dica` - Revela a próxima dica (uma por turno)
 - `/palpite <nome>` - Dá seu palpite sobre quem é o craque
 - `/desistir` - Encerra o jogo atual
+
+### Botões Interativos
+- **Entrar** 🎮 - Entra na partida (substitui o comando `/entrar`)
+- **Pronto** ✅ - Marca que você está pronto para começar
 
 ## 🏗️ Estrutura do Projeto
 
 ```
 quem-e-o-craque-bot/
 ├── commands/
-│   ├── game/           # Comandos do jogo
-│   │   ├── jogar.js
-│   │   ├── entrar.js
-│   │   ├── dica.js
-│   │   ├── palpite.js
-│   │   └── desistir.js
+│   └── game/           # Comandos do jogo
+│       ├── jogar.js
+│       ├── dica.js
+│       ├── palpite.js
+│       └── desistir.js
 ├── data/
 │   └── players.json    # Banco de dados de jogadores
 ├── events/             # Event handlers do Discord
+│   ├── interactionCreate.js
+│   ├── ready.js
+│   └── buttonInteraction.js
 ├── game/
 │   └── GameManager.js  # Lógica principal do jogo
 ├── deploy-commands.js  # Script para registrar comandos
