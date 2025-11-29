@@ -74,9 +74,7 @@ module.exports = {
 
 			await updateGameMessage(interaction, session);
 
-			await interaction.reply({
-				content: `✅ <@${interaction.user.id}> está pronto!`,
-			});
+			await interaction.deferUpdate();
 
 			if (session.allPlayersReady()) {
 				await startGame(interaction, session);

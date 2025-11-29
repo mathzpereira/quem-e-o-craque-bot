@@ -26,9 +26,8 @@ module.exports = {
 
 		// Verifica se é a vez do jogador
 		if (session.currentPlayer !== interaction.user.id) {
-			const currentPlayerName = session.getCurrentPlayerName();
 			return interaction.reply({
-				content: `⏳ Aguarde sua vez! É a vez de **${currentPlayerName}**.`,
+				content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
 				ephemeral: true,
 			});
 		}

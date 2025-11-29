@@ -32,9 +32,8 @@ module.exports = {
 
 		// Verifica se é a vez do jogador
 		if (session.currentPlayer !== interaction.user.id) {
-			const currentPlayerName = session.getCurrentPlayerName();
 			return interaction.reply({
-				content: `⏳ Aguarde sua vez! É a vez de **${currentPlayerName}**.`,
+				content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
 				ephemeral: true,
 			});
 		}
@@ -105,9 +104,8 @@ module.exports = {
 			session.nextTurn();
 
 			// Anuncia o próximo jogador
-			const nextPlayerName = session.getCurrentPlayerName();
 			await interaction.followUp({
-				content: `🎮 É a vez de **${nextPlayerName}**! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
+				content: `🎮 É a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
 			});
 		}
 	},
