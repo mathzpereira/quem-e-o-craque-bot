@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { gameManager } = require('../game/GameManager');
 
 module.exports = {
@@ -12,14 +12,14 @@ module.exports = {
 			if (!session) {
 				return interaction.reply({
 					content: '❌ Não há nenhum jogo neste canal!',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
 			if (session.isActive) {
 				return interaction.reply({
 					content: '❌ O jogo já começou! Aguarde a próxima partida.',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
@@ -28,7 +28,7 @@ module.exports = {
 			if (!added) {
 				return interaction.reply({
 					content: '⚠️ Você já está na partida!',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
@@ -43,21 +43,21 @@ module.exports = {
 			if (!session) {
 				return interaction.reply({
 					content: '❌ Não há nenhum jogo neste canal!',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
 			if (session.isActive) {
 				return interaction.reply({
 					content: '❌ O jogo já começou!',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
 			if (!session.players.has(interaction.user.id)) {
 				return interaction.reply({
 					content: '⚠️ Você precisa entrar no jogo primeiro! Clique em "Entrar".',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
@@ -66,7 +66,7 @@ module.exports = {
 			if (player.ready) {
 				return interaction.reply({
 					content: '⚠️ Você já está pronto!',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { gameManager } = require('../../game/GameManager');
 
 module.exports = {
@@ -19,14 +19,14 @@ module.exports = {
 		if (!session) {
 			return interaction.reply({
 				content: '❌ Não há nenhum jogo ativo neste canal! Use `/jogar` para iniciar um novo jogo.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
 		if (!session.isActive) {
 			return interaction.reply({
 				content: '⚠️ O jogo ainda não começou! Aguarde todos os jogadores ficarem prontos.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
@@ -37,14 +37,14 @@ module.exports = {
 			if (session.currentPlayer !== interaction.user.id && !isUsingPower) {
 				return interaction.reply({
 					content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 
 			if (player && player.skipNextTurn) {
 				return interaction.reply({
 					content: '😱 Você não pode dar palpite neste turno! Você revelou uma dica "Perca sua vez".',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 		}
@@ -52,7 +52,7 @@ module.exports = {
 		if (!isUsingPower && !session.hasUsedHint && session.revealedHints.length === 0) {
 			return interaction.reply({
 				content: '⚠️ Você precisa revelar pelo menos uma dica antes de dar um palpite! Use `/dica` primeiro.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { gameManager } = require('../../game/GameManager');
 
 module.exports = {
@@ -12,7 +12,7 @@ module.exports = {
 		if (gameManager.hasSession(channelId)) {
 			return interaction.reply({
 				content: '❌ Já existe um jogo neste canal! Use `/desistir` para encerrar o jogo atual.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
@@ -20,7 +20,7 @@ module.exports = {
 		if (!session) {
 			return interaction.reply({
 				content: '❌ Erro ao criar a sessão do jogo.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
@@ -59,7 +59,7 @@ module.exports = {
 					.setStyle(ButtonStyle.Success),
 			);
 
-		const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
+		const message = await interaction.reply({ embeds: [embed], components: [row] }).withResponse();
 		session.messageId = message.id;
 	},
 };

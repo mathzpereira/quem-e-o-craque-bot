@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { gameManager } = require('../../game/GameManager');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
 		if (!session) {
 			return interaction.reply({
 				content: '❌ Não há nenhum jogo ativo neste canal!',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
