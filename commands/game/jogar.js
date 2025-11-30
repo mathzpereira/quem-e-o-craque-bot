@@ -59,7 +59,7 @@ module.exports = {
 					.setStyle(ButtonStyle.Success),
 			);
 
-		const message = await interaction.reply({ embeds: [embed], components: [row] }).withResponse();
+		const message = await interaction.reply({ embeds: [embed], components: [row], withResponse: true });
 		session.messageId = message.id;
 	},
 };
