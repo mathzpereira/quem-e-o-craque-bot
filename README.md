@@ -73,20 +73,6 @@ quem-e-o-craque-bot/
    node index.js
    ```
 
-## 🎯 Jogadores Disponíveis
-
-O jogo inclui 10 craques do futebol mundial:
-- Cristiano Ronaldo
-- Lionel Messi
-- Neymar Jr
-- Pelé
-- Ronaldo Fenômeno
-- Ronaldinho Gaúcho
-- Zinedine Zidane
-- Karim Benzema
-- Vinicius Junior
-- Romário
-
 ## 📦 Tecnologias
 
 - **Node.js** - Runtime JavaScript
