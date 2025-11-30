@@ -80,10 +80,16 @@ class GameSession {
 			this.currentHintIndex++;
 			this.hasUsedHint = true;
 
-			if (typeof hintData === 'object') {
-				this.lastSpecialHint = hintData;
-				this.revealedHints.push(hintData);
-				return hintData;
+			if (hintData === 'skip_turn') {
+				this.lastSpecialHint = { type: 'skip_turn', text: 'Perca sua vez.' };
+				this.revealedHints.push(this.lastSpecialHint);
+				return this.lastSpecialHint;
+			}
+
+			if (hintData === 'anytime_guess') {
+				this.lastSpecialHint = { type: 'anytime_guess', text: 'Um palpite a qualquer hora.' };
+				this.revealedHints.push(this.lastSpecialHint);
+				return this.lastSpecialHint;
 			}
 
 			this.lastSpecialHint = null;
@@ -103,7 +109,7 @@ class GameSession {
 			player.skipNextTurn = true;
 			return {
 				type: 'skip_turn',
-				message: `😱 **Perca sua vez!** <@${this.currentPlayer}> não poderá dar um palpite neste turno!`,
+				message: `<@${this.currentPlayer}> não poderá dar um palpite neste turno.`,
 			};
 		}
 
@@ -111,7 +117,7 @@ class GameSession {
 			player.hasAnytimeGuess = true;
 			return {
 				type: 'anytime_guess',
-				message: `🌟 **Poder Especial!** <@${this.currentPlayer}> ganhou o poder de palpitar a qualquer hora! Pode usar \`/palpite\` mesmo fora do seu turno.`,
+				message: `<@${this.currentPlayer}> ganhou o poder de palpitar a qualquer hora!`,
 			};
 		}
 
