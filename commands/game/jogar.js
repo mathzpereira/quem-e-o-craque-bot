@@ -59,7 +59,8 @@ module.exports = {
 					.setStyle(ButtonStyle.Success),
 			);
 
-		const message = await interaction.reply({ embeds: [embed], components: [row], withResponse: true });
+		const response = await interaction.reply({ embeds: [embed], components: [row], withResponse: true });
+		const message = response.resource.message;
 		session.messageId = message.id;
 	},
 };
