@@ -17,7 +17,21 @@ class GameSession {
 
 	selectRandomPlayer() {
 		const randomIndex = Math.floor(Math.random() * players.players.length);
-		return players.players[randomIndex];
+		const selectedPlayer = players.players[randomIndex];
+
+		return {
+			...selectedPlayer,
+			hints: this.shuffleHints([...selectedPlayer.hints]),
+		};
+	}
+
+	shuffleHints(hints) {
+		const shuffled = [...hints];
+		for (let i = shuffled.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		}
+		return shuffled;
 	}
 
 	addPlayer(userId, username) {
