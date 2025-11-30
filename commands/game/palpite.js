@@ -65,25 +65,26 @@ module.exports = {
 			const leaderboard = session.getLeaderboard();
 
 			const leaderboardText = leaderboard
-				.map((p, i) => `${i + 1}. **${p.username}** - ${p.score} ponto(s)`)
+				.map((p, i) => `${i + 1}. <@${p.userId}>`)
 				.join('\n');
 
 			const powerMessage = usedPower ? '\n\n🌟 **Usou poder especial para palpitar fora do turno!**' : '';
-
 			const embed = new EmbedBuilder()
 				.setColor(0x00FF00)
 				.setTitle('🎉 ACERTOU! 🎉')
 				.setDescription(
 					`**<@${interaction.user.id}>** descobriu que o craque é **${session.currentCard.name}**!${powerMessage}\n\n` +
-					`🏆 **Placar Final:**\n${leaderboardText}`,
+				`🏆 **Placar Final:**\n${leaderboardText}`,
 				)
 				.addFields(
 					{
 						name: '💡 Todas as Dicas',
 						value: session.currentCard.hints.map((h, i) => {
-							if (typeof h === 'object') {
-								const icon = h.type === 'skip_turn' ? '⚠️' : '🌟';
-								return `${icon} ${i + 1}. ${h.text}`;
+							if (h === 'skip_turn') {
+								return `⚠️ ${i + 1}. Perca sua vez.`;
+							}
+							if (h === 'anytime_guess') {
+								return `🌟 ${i + 1}. Um palpite a qualquer hora.`;
 							}
 							return `💡 ${i + 1}. ${h}`;
 						}).join('\n'),
@@ -91,11 +92,8 @@ module.exports = {
 					},
 				)
 				.setFooter({ text: 'Use /jogar para iniciar um novo jogo!' })
-				.setTimestamp();
+				.setTimestamp();			await interaction.reply({ embeds: [embed] });
 
-			await interaction.reply({ embeds: [embed] });
-
-			// Encerra a sessão
 			gameManager.endSession(channelId);
 		}
 		else {

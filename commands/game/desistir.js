@@ -27,7 +27,15 @@ module.exports = {
 			.addFields(
 				{
 					name: '💡 Todas as Dicas',
-					value: session.currentCard.hints.map((h, i) => `${i + 1}. ${h}`).join('\n'),
+					value: session.currentCard.hints.map((h, i) => {
+						if (h === 'skip_turn') {
+							return `⚠️ ${i + 1}. Perca sua vez.`;
+						}
+						if (h === 'anytime_guess') {
+							return `🌟 ${i + 1}. Um palpite a qualquer hora.`;
+						}
+						return `💡 ${i + 1}. ${h}`;
+					}).join('\n'),
 					inline: false,
 				},
 				{
@@ -43,7 +51,6 @@ module.exports = {
 
 		await interaction.reply({ embeds: [embed] });
 
-		// Encerra a sessão
 		gameManager.endSession(channelId);
 	},
 };
