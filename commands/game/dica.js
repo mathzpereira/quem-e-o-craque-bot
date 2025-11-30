@@ -24,7 +24,6 @@ module.exports = {
 			});
 		}
 
-		// Verifica se é a vez do jogador
 		if (session.currentPlayer !== interaction.user.id) {
 			return interaction.reply({
 				content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
@@ -32,7 +31,6 @@ module.exports = {
 			});
 		}
 
-		// Verifica se o jogador já usou a dica neste turno
 		if (session.hasUsedHint) {
 			return interaction.reply({
 				content: '⚠️ Você já revelou uma dica neste turno! Agora use `/palpite <nome>` para dar seu palpite.',
@@ -40,24 +38,30 @@ module.exports = {
 			});
 		}
 
-		// Revela a próxima dica
-		const hint = session.revealNextHint();
+		const hintData = session.revealNextHint();
 
-		if (!hint) {
+		if (!hintData) {
 			return interaction.reply({
 				content: '❌ Todas as dicas já foram reveladas! Use `/palpite <nome>` para dar seu palpite.',
 				ephemeral: true,
 			});
 		}
 
+		const specialEffect = session.applySpecialHint(hintData);
+
+		const isSkipTurn = hintData.type === 'skip_turn';
+
 		const embed = new EmbedBuilder()
-			.setColor(0xFFD700)
-			.setTitle('🔍 Nova Dica Revelada!')
-			.setDescription(`**Dica ${session.currentHintIndex}/${session.currentCard.hints.length}:**\n${hint}`)
+			.setColor(hintData.type !== 'normal' ? 0xFF6B00 : 0xFFD700)
+			.setTitle(hintData.type !== 'normal' ? '⚡ Dica Especial Revelada!' : '🔍 Nova Dica Revelada!')
+			.setDescription(`**Dica ${session.currentHintIndex}/${session.currentCard.hints.length}:**\n${hintData.text}`)
 			.addFields(
 				{
 					name: '💡 Dicas Reveladas',
-					value: session.revealedHints.map((h, i) => `${i + 1}. ${h}`).join('\n') || 'Nenhuma',
+					value: session.revealedHints.map((h, i) => {
+						const icon = h.type === 'normal' ? '💡' : h.type === 'skip_turn' ? '⚠️' : '🌟';
+						return `${icon} ${i + 1}. ${h.text}`;
+					}).join('\n') || 'Nenhuma',
 					inline: false,
 				},
 				{
@@ -69,6 +73,22 @@ module.exports = {
 			.setFooter({ text: 'Use /palpite <nome> para dar seu palpite!' })
 			.setTimestamp();
 
+		if (specialEffect) {
+			embed.addFields({
+				name: '⚡ Efeito Aplicado',
+				value: specialEffect.message,
+				inline: false,
+			});
+		}
+
 		await interaction.reply({ embeds: [embed] });
+
+		if (isSkipTurn) {
+			session.nextTurn();
+
+			await interaction.followUp({
+				content: `➡️ Turno pulado! Agora é a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
+			});
+		}
 	},
 };

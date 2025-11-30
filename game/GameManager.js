@@ -3,7 +3,7 @@ const players = require('../data/players.json');
 class GameSession {
 	constructor(channelId) {
 		this.channelId = channelId;
-		this.players = new Map(); // userId -> { username, score, ready }
+		this.players = new Map(); // userId -> { username, score, ready, skipNextTurn, hasAnytimeGuess }
 		this.currentPlayer = null;
 		this.currentPlayerIndex = 0;
 		this.currentCard = this.selectRandomPlayer();
@@ -12,6 +12,7 @@ class GameSession {
 		this.isActive = false;
 		this.hasUsedHint = false;
 		this.messageId = null; // ID da mensagem principal do jogo
+		this.lastSpecialHint = null;
 	}
 
 	selectRandomPlayer() {
@@ -21,7 +22,13 @@ class GameSession {
 
 	addPlayer(userId, username) {
 		if (!this.players.has(userId)) {
-			this.players.set(userId, { username, score: 0, ready: false });
+			this.players.set(userId, {
+				username,
+				score: 0,
+				ready: false,
+				skipNextTurn: false,
+				hasAnytimeGuess: false,
+			});
 			return true;
 		}
 		return false;
@@ -69,13 +76,70 @@ class GameSession {
 
 	revealNextHint() {
 		if (this.currentHintIndex < this.currentCard.hints.length) {
-			const hint = this.currentCard.hints[this.currentHintIndex];
-			this.revealedHints.push(hint);
+			const hintData = this.currentCard.hints[this.currentHintIndex];
 			this.currentHintIndex++;
 			this.hasUsedHint = true;
-			return hint;
+
+			if (typeof hintData === 'object') {
+				this.lastSpecialHint = hintData;
+				this.revealedHints.push(hintData);
+				return hintData;
+			}
+
+			this.lastSpecialHint = null;
+			this.revealedHints.push({ type: 'normal', text: hintData });
+			return { type: 'normal', text: hintData };
 		}
 		return null;
+	}
+
+	applySpecialHint(specialHint) {
+		if (!specialHint || specialHint.type === 'normal') return null;
+
+		const player = this.players.get(this.currentPlayer);
+		if (!player) return null;
+
+		if (specialHint.type === 'skip_turn') {
+			player.skipNextTurn = true;
+			return {
+				type: 'skip_turn',
+				message: `😱 **Perca sua vez!** <@${this.currentPlayer}> não poderá dar um palpite neste turno!`,
+			};
+		}
+
+		if (specialHint.type === 'anytime_guess') {
+			player.hasAnytimeGuess = true;
+			return {
+				type: 'anytime_guess',
+				message: `🌟 **Poder Especial!** <@${this.currentPlayer}> ganhou o poder de palpitar a qualquer hora! Pode usar \`/palpite\` mesmo fora do seu turno.`,
+			};
+		}
+
+		return null;
+	}
+
+	canPlayerGuess(userId) {
+		const player = this.players.get(userId);
+		if (!player) return false;
+
+		if (player.hasAnytimeGuess && userId !== this.currentPlayer) {
+			return true;
+		}
+
+		if (userId === this.currentPlayer) {
+			return !player.skipNextTurn;
+		}
+
+		return false;
+	}
+
+	useAnytimeGuess(userId) {
+		const player = this.players.get(userId);
+		if (player && player.hasAnytimeGuess) {
+			player.hasAnytimeGuess = false;
+			return true;
+		}
+		return false;
 	}
 
 	checkAnswer(guess) {
@@ -93,6 +157,12 @@ class GameSession {
 
 	nextTurn() {
 		const playerIds = Array.from(this.players.keys());
+
+		const currentPlayer = this.players.get(this.currentPlayer);
+		if (currentPlayer && currentPlayer.skipNextTurn) {
+			currentPlayer.skipNextTurn = false;
+		}
+
 		this.currentPlayerIndex = (this.currentPlayerIndex + 1) % playerIds.length;
 		this.currentPlayer = playerIds[this.currentPlayerIndex];
 		this.hasUsedHint = false;

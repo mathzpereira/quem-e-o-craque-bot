@@ -30,27 +30,37 @@ module.exports = {
 			});
 		}
 
-		// Verifica se é a vez do jogador
-		if (session.currentPlayer !== interaction.user.id) {
-			return interaction.reply({
-				content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
-				ephemeral: true,
-			});
+		const player = session.players.get(interaction.user.id);
+		const isUsingPower = player && player.hasAnytimeGuess && session.currentPlayer !== interaction.user.id;
+
+		if (!session.canPlayerGuess(interaction.user.id)) {
+			if (session.currentPlayer !== interaction.user.id && !isUsingPower) {
+				return interaction.reply({
+					content: `⏳ Aguarde sua vez! É a vez de <@${session.currentPlayer}>.`,
+					ephemeral: true,
+				});
+			}
+
+			if (player && player.skipNextTurn) {
+				return interaction.reply({
+					content: '😱 Você não pode dar palpite neste turno! Você revelou uma dica "Perca sua vez".',
+					ephemeral: true,
+				});
+			}
 		}
 
-		// Verifica se o jogador revelou pelo menos uma dica
-		if (!session.hasUsedHint && session.revealedHints.length === 0) {
+		if (!isUsingPower && !session.hasUsedHint && session.revealedHints.length === 0) {
 			return interaction.reply({
 				content: '⚠️ Você precisa revelar pelo menos uma dica antes de dar um palpite! Use `/dica` primeiro.',
 				ephemeral: true,
 			});
 		}
 
-		// Verifica a resposta
+		const usedPower = isUsingPower ? session.useAnytimeGuess(interaction.user.id) : false;
+
 		const isCorrect = session.checkAnswer(guess);
 
 		if (isCorrect) {
-			// Jogador acertou!
 			session.addScore(interaction.user.id, 1);
 			const leaderboard = session.getLeaderboard();
 
@@ -58,17 +68,25 @@ module.exports = {
 				.map((p, i) => `${i + 1}. **${p.username}** - ${p.score} ponto(s)`)
 				.join('\n');
 
+			const powerMessage = usedPower ? '\n\n🌟 **Usou poder especial para palpitar fora do turno!**' : '';
+
 			const embed = new EmbedBuilder()
 				.setColor(0x00FF00)
 				.setTitle('🎉 ACERTOU! 🎉')
 				.setDescription(
-					`**<@${interaction.user.id}>** descobriu que o craque é **${session.currentCard.name}**!\n\n` +
+					`**<@${interaction.user.id}>** descobriu que o craque é **${session.currentCard.name}**!${powerMessage}\n\n` +
 					`🏆 **Placar Final:**\n${leaderboardText}`,
 				)
 				.addFields(
 					{
 						name: '💡 Todas as Dicas',
-						value: session.currentCard.hints.map((h, i) => `${i + 1}. ${h}`).join('\n'),
+						value: session.currentCard.hints.map((h, i) => {
+							if (typeof h === 'object') {
+								const icon = h.type === 'skip_turn' ? '⚠️' : '🌟';
+								return `${icon} ${i + 1}. ${h.text}`;
+							}
+							return `💡 ${i + 1}. ${h}`;
+						}).join('\n'),
 						inline: false,
 					},
 				)
@@ -81,18 +99,23 @@ module.exports = {
 			gameManager.endSession(channelId);
 		}
 		else {
-			// Resposta incorreta - passa para o próximo jogador
+			const powerMessage = usedPower ? ' usando seu poder especial' : '';
+
 			const embed = new EmbedBuilder()
 				.setColor(0xFF0000)
 				.setTitle('❌ Resposta Incorreta!')
 				.setDescription(
-					`**<@${interaction.user.id}>** palpitou **${guess}**, mas não é o craque que estamos procurando!\n\n` +
+					`**<@${interaction.user.id}>** palpitou **${guess}**${powerMessage}, mas não é o craque que estamos procurando!\n\n` +
+					(usedPower ? '🌟 Poder especial foi consumido.\n\n' : '') +
 					'Passando para o próximo jogador...',
 				)
 				.addFields(
 					{
 						name: '💡 Dicas Reveladas até agora',
-						value: session.revealedHints.map((h, i) => `${i + 1}. ${h}`).join('\n') || 'Nenhuma',
+						value: session.revealedHints.map((h, i) => {
+							const icon = h.type === 'normal' ? '💡' : h.type === 'skip_turn' ? '⚠️' : '🌟';
+							return `${icon} ${i + 1}. ${h.text}`;
+						}).join('\n') || 'Nenhuma',
 						inline: false,
 					},
 				)
@@ -100,13 +123,18 @@ module.exports = {
 
 			await interaction.reply({ embeds: [embed] });
 
-			// Próximo turno
-			session.nextTurn();
+			if (!usedPower) {
+				session.nextTurn();
 
-			// Anuncia o próximo jogador
-			await interaction.followUp({
-				content: `🎮 É a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
-			});
+				await interaction.followUp({
+					content: `🎮 É a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
+				});
+			}
+			else {
+				await interaction.followUp({
+					content: `🎮 Ainda é a vez de <@${session.currentPlayer}>.`,
+				});
+			}
 		}
 	},
 };
