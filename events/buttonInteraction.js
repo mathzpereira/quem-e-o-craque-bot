@@ -113,15 +113,12 @@ async function updateGameMessage(interaction, session) {
 async function startGame(interaction, session) {
 	session.start();
 
-	const firstHint = session.revealNextHint();
-	const specialEffect = session.applySpecialHint(firstHint);
-
 	const embed = new EmbedBuilder()
-		.setColor(firstHint.type !== 'normal' ? 0xFF6B00 : 0xFFD700)
+		.setColor(0xFFD700)
 		.setTitle('🎮 O Jogo Começou!')
 		.setDescription(
 			'Todos os jogadores estão prontos! Vamos começar!\n\n' +
-			`**Dica ${session.currentHintIndex}/${session.currentCard.hints.length}:**\n${firstHint.text}`,
+			`Existem **${session.currentCard.hints.length} dicas** sobre o craque misterioso.`,
 		)
 		.addFields(
 			{
@@ -135,16 +132,8 @@ async function startGame(interaction, session) {
 				inline: true,
 			},
 		)
-		.setFooter({ text: 'Use /dica para mais dicas ou /palpite <nome> para dar seu palpite!' })
+		.setFooter({ text: 'Use /dica <número> para revelar uma dica ou /palpite <nome> para dar seu palpite!' })
 		.setTimestamp();
-
-	if (specialEffect) {
-		embed.addFields({
-			name: '⚡ Efeito Aplicado',
-			value: specialEffect.message,
-			inline: false,
-		});
-	}
 
 	await interaction.channel.send({ embeds: [embed] });
 

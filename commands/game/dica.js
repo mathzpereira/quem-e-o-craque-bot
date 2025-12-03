@@ -4,7 +4,14 @@ const { gameManager } = require('../../game/GameManager');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('dica')
-		.setDescription('Revela a próxima dica sobre o craque'),
+		.setDescription('Revela uma dica sobre o craque')
+		.addIntegerOption(option =>
+			option
+				.setName('numero')
+				.setDescription('Número da dica (1-10)')
+				.setRequired(true)
+				.setMinValue(1)
+				.setMaxValue(10)),
 
 	async execute(interaction) {
 		const channelId = interaction.channelId;
@@ -38,30 +45,29 @@ module.exports = {
 			});
 		}
 
-		const hintData = session.revealNextHint();
-
-		if (!hintData) {
+		const hintNumber = interaction.options.getInteger('numero');
+		const hintData = session.revealHintByNumber(hintNumber);	if (!hintData) {
 			return interaction.reply({
-				content: '❌ Todas as dicas já foram reveladas! Use `/palpite <nome>` para dar seu palpite.',
+				content: '❌ Esta dica já foi revelada! Escolha outro número.',
 				flags: MessageFlags.Ephemeral,
 			});
-		}
-
-		const specialEffect = session.applySpecialHint(hintData);
+		}		const specialEffect = session.applySpecialHint(hintData);
 
 		const isSkipTurn = hintData.type === 'skip_turn';
 
 		const embed = new EmbedBuilder()
 			.setColor(0xFFD700)
 			.setTitle('🔍 Nova Dica Revelada!')
-			.setDescription(`**Dica ${session.currentHintIndex}/${session.currentCard.hints.length}:**\n${hintData.text}`)
+			.setDescription(`**Dica ${hintNumber}:**\n${hintData.text}`)
 			.addFields(
 				{
 					name: '💡 Dicas Reveladas',
-					value: session.revealedHints.map((h, i) => {
-						const icon = h.type === 'normal' ? '💡' : h.type === 'skip_turn' ? '⚠️' : '🌟';
-						return `${icon} ${i + 1}. ${h.text}`;
-					}).join('\n') || 'Nenhuma',
+					value: session.revealedHints
+						.sort((a, b) => a.number - b.number)
+						.map(h => {
+							const icon = h.type === 'normal' ? '💡' : h.type === 'skip_turn' ? '⚠️' : '🌟';
+							return `${icon} ${h.number}. ${h.text}`;
+						}).join('\n') || 'Nenhuma',
 					inline: false,
 				},
 				{
@@ -87,7 +93,7 @@ module.exports = {
 			session.nextTurn();
 
 			await interaction.followUp({
-				content: `➡️ Turno pulado! Agora é a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
+				content: `➡️ Turno pulado! Agora é a vez de <@${session.currentPlayer}>! Use \`/dica <número>\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
 			});
 		}
 	},

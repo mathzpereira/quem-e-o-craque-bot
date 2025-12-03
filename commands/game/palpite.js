@@ -69,32 +69,36 @@ module.exports = {
 				.join('\n');
 
 			const powerMessage = usedPower ? '\n\n🌟 **Usou poder especial para palpitar fora do turno!**' : '';
+
+			const allHintsText = session.currentCard.hints.map((h, i) => {
+				if (h === 'skip_turn') {
+					return `⚠️ ${i + 1}. Perca sua vez.`;
+				}
+				if (h === 'anytime_guess') {
+					return `🌟 ${i + 1}. Um palpite a qualquer hora.`;
+				}
+				return `💡 ${i + 1}. ${h}`;
+			}).join('\n');
+
 			const embed = new EmbedBuilder()
 				.setColor(0x00FF00)
 				.setTitle('🎉 ACERTOU! 🎉')
 				.setDescription(
 					`**<@${interaction.user.id}>** descobriu que o craque é **${session.getPlayerName()}**!${powerMessage}\n\n` +
-				`🏆 **Placar Final:**\n${leaderboardText}`,
-				)
-				.addFields(
-					{
-						name: '💡 Todas as Dicas',
-						value: session.currentCard.hints.map((h, i) => {
-							if (h === 'skip_turn') {
-								return `⚠️ ${i + 1}. Perca sua vez.`;
-							}
-							if (h === 'anytime_guess') {
-								return `🌟 ${i + 1}. Um palpite a qualquer hora.`;
-							}
-							return `💡 ${i + 1}. ${h}`;
-						}).join('\n'),
-						inline: false,
-					},
-				)
-				.setFooter({ text: 'Use /jogar para iniciar um novo jogo!' })
-				.setTimestamp();			await interaction.reply({ embeds: [embed] });
+			`🏆 **Placar Final:**\n${leaderboardText}`,
+				);
 
-			gameManager.endSession(channelId);
+			if (allHintsText && allHintsText.length > 0) {
+				embed.addFields({
+					name: '💡 Todas as Dicas',
+					value: allHintsText.substring(0, 1024),
+				});
+			}
+
+			embed.setFooter({ text: 'Use /jogar para iniciar um novo jogo!' })
+				.setTimestamp();
+
+			await interaction.reply({ embeds: [embed] });			gameManager.endSession(channelId);
 		}
 		else {
 			const powerMessage = usedPower ? ' usando seu poder especial' : '';
@@ -125,7 +129,7 @@ module.exports = {
 				session.nextTurn();
 
 				await interaction.followUp({
-					content: `🎮 É a vez de <@${session.currentPlayer}>! Use \`/dica\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
+					content: `🎮 É a vez de <@${session.currentPlayer}>! Use \`/dica <número>\` para revelar uma dica ou \`/palpite\` se já souber a resposta.`,
 				});
 			}
 			else {

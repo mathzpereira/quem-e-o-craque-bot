@@ -91,6 +91,39 @@ class GameSession {
 		}
 	}
 
+	revealHintByNumber(hintNumber) {
+		const index = hintNumber - 1;
+
+		if (index < 0 || index >= this.currentCard.hints.length) {
+			return null;
+		}
+
+		if (this.revealedHints.some(h => h.number === hintNumber)) {
+			return null;
+		}
+
+		const hintData = this.currentCard.hints[index];
+		this.hasUsedHint = true;
+
+		let hintObject;
+
+		if (hintData === 'skip_turn') {
+			hintObject = { type: 'skip_turn', text: 'Perca sua vez.', number: hintNumber };
+			this.lastSpecialHint = hintObject;
+		}
+		else if (hintData === 'anytime_guess') {
+			hintObject = { type: 'anytime_guess', text: 'Um palpite a qualquer hora.', number: hintNumber };
+			this.lastSpecialHint = hintObject;
+		}
+		else {
+			hintObject = { type: 'normal', text: hintData, number: hintNumber };
+			this.lastSpecialHint = null;
+		}
+
+		this.revealedHints.push(hintObject);
+		return hintObject;
+	}
+
 	revealNextHint() {
 		if (this.currentHintIndex < this.currentCard.hints.length) {
 			const hintData = this.currentCard.hints[this.currentHintIndex];
