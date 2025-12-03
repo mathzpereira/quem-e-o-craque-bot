@@ -16,7 +16,7 @@ module.exports = {
 			});
 		}
 
-		const session = gameManager.createSession(channelId);
+		const session = await gameManager.createSession(channelId);
 		if (!session) {
 			return interaction.reply({
 				content: '❌ Erro ao criar a sessão do jogo.',

@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { connectDB, closeDB } = require('./database/mongodb');
 
 if (fs.existsSync('.env')) {
 	require('dotenv').config();
@@ -9,6 +10,10 @@ if (fs.existsSync('.env')) {
 const token = process.env.DISCORD_TOKEN || require('./config.json').token;
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+connectDB().catch(error => {
+	console.error(error);
+});
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -41,5 +46,11 @@ for (const file of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
+
+process.on('SIGINT', async () => {
+	console.log('\n🛑 Encerrando bot...');
+	await closeDB();
+	process.exit(0);
+});
 
 client.login(token);

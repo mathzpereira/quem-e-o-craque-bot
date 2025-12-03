@@ -1,11 +1,14 @@
-const players = require('../data/players.json');
+const { getAllPlayers } = require('../database/mongodb');
+
+let cachedPlayers = [];
 
 class GameSession {
-	constructor(channelId) {
+	constructor(channelId, playersData) {
 		this.channelId = channelId;
 		this.players = new Map(); // userId -> { username, score, ready, skipNextTurn, hasAnytimeGuess }
 		this.currentPlayer = null;
 		this.currentPlayerIndex = 0;
+		this.playersData = playersData;
 		this.currentCard = this.selectRandomPlayer();
 		this.revealedHints = [];
 		this.currentHintIndex = 0;
@@ -16,8 +19,8 @@ class GameSession {
 	}
 
 	selectRandomPlayer() {
-		const randomIndex = Math.floor(Math.random() * players.players.length);
-		const selectedPlayer = players.players[randomIndex];
+		const randomIndex = Math.floor(Math.random() * this.playersData.length);
+		const selectedPlayer = this.playersData[randomIndex];
 
 		return {
 			...selectedPlayer,
@@ -164,15 +167,28 @@ class GameSession {
 
 	checkAnswer(guess) {
 		const normalizedGuess = guess.toLowerCase().trim();
-		const normalizedAnswer = this.currentCard.name.toLowerCase().trim();
 
-		return normalizedGuess === normalizedAnswer ||
-		       normalizedAnswer.includes(normalizedGuess) ||
-		       this.removeAccents(normalizedGuess) === this.removeAccents(normalizedAnswer);
+		const names = Array.isArray(this.currentCard.name)
+			? this.currentCard.name
+			: [this.currentCard.name];
+
+		return names.some(name => {
+			const normalizedAnswer = String(name || '').toLowerCase().trim();
+			return normalizedGuess === normalizedAnswer ||
+			       normalizedAnswer.includes(normalizedGuess) ||
+			       this.removeAccents(normalizedGuess) === this.removeAccents(normalizedAnswer);
+		});
 	}
 
 	removeAccents(str) {
 		return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+	}
+
+	getPlayerName() {
+		if (Array.isArray(this.currentCard.name)) {
+			return this.currentCard.name[0];
+		}
+		return this.currentCard.name;
 	}
 
 	nextTurn() {
@@ -216,13 +232,28 @@ class GameSession {
 class GameManager {
 	constructor() {
 		this.sessions = new Map(); // channelId -> GameSession
+		this.loadPlayers();
 	}
 
-	createSession(channelId) {
+	async loadPlayers() {
+		try {
+			cachedPlayers = await getAllPlayers();
+		}
+		catch (error) {
+			console.error(error);
+		}
+	}
+
+	async createSession(channelId) {
 		if (this.sessions.has(channelId)) {
 			return null;
 		}
-		const session = new GameSession(channelId);
+
+		if (cachedPlayers.length === 0) {
+			await this.loadPlayers();
+		}
+
+		const session = new GameSession(channelId, cachedPlayers);
 		this.sessions.set(channelId, session);
 		return session;
 	}

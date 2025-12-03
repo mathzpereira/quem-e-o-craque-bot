@@ -73,7 +73,7 @@ module.exports = {
 				.setColor(0x00FF00)
 				.setTitle('🎉 ACERTOU! 🎉')
 				.setDescription(
-					`**<@${interaction.user.id}>** descobriu que o craque é **${session.currentCard.name}**!${powerMessage}\n\n` +
+					`**<@${interaction.user.id}>** descobriu que o craque é **${session.getPlayerName()}**!${powerMessage}\n\n` +
 				`🏆 **Placar Final:**\n${leaderboardText}`,
 				)
 				.addFields(

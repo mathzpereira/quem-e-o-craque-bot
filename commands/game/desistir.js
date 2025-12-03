@@ -22,7 +22,7 @@ module.exports = {
 			.setTitle('🏳️ Jogo Encerrado!')
 			.setDescription(
 				`O jogo foi encerrado por <@${interaction.user.id}>.\n\n` +
-				`**O craque era:** ${session.currentCard.name}`,
+				`**O craque era:** ${session.getPlayerName()}`,
 			)
 			.addFields(
 				{
