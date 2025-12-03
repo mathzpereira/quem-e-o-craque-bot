@@ -111,16 +111,6 @@ module.exports = {
 					(usedPower ? '🌟 Poder especial foi consumido.\n\n' : '') +
 					'Passando para o próximo jogador...',
 				)
-				.addFields(
-					{
-						name: '💡 Dicas Reveladas até agora',
-						value: session.revealedHints.map((h, i) => {
-							const icon = h.type === 'normal' ? '💡' : h.type === 'skip_turn' ? '⚠️' : '🌟';
-							return `${icon} ${i + 1}. ${h.text}`;
-						}).join('\n') || 'Nenhuma',
-						inline: false,
-					},
-				)
 				.setTimestamp();
 
 			await interaction.reply({ embeds: [embed] });
