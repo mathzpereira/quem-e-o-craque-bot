@@ -141,3 +141,4 @@ vite.config.ts.timestamp-*
 config.json
 .vscode/
 send-players-webhook.js
+.github/copilot-instructions.md
