@@ -1,93 +1,162 @@
-# ⚽ Quem é o Craque? - Bot do Discord
+# Quem é o Craque? ⚽
 
-Um jogo interativo de adivinhação de jogadores de futebol para Discord, inspirado no jogo de tabuleiro **Perfil**.
+Bot de Discord com jogo de adivinhação de jogadores de futebol usando slash commands, botões interativos e cards armazenados no MongoDB.
 
-## 🎮 Como Jogar
+## Sumário
 
-1. **Iniciar o jogo**: Use `/jogar` para criar uma nova partida no canal
-2. **Entrar no jogo**: Clique no botão **Entrar** para participar
-3. **Ficar pronto**: Clique no botão **Pronto** quando estiver pronto para começar
-4. **Aguardar início**: O jogo começa automaticamente quando todos estiverem prontos (ordem dos jogadores é sorteada!)
-5. **Revelar dicas**: No seu turno, use `/dica` para revelar uma pista sobre o jogador misterioso
-6. **Dar palpite**: Use `/palpite <nome>` para tentar adivinhar quem é o craque
-7. **Desistir**: Use `/desistir` para encerrar o jogo e revelar a resposta
+- [Funcionalidades](#funcionalidades)
+- [Stack e requisitos](#stack-e-requisitos)
+- [Instalação](#instalação)
+- [Configuração](#configuração)
+- [Primeira execução](#primeira-execução)
+- [Como jogar](#como-jogar)
+- [Comandos](#comandos)
+- [Arquitetura resumida](#arquitetura-resumida)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Licença](#licença)
 
-## 📋 Regras
+## Funcionalidades
 
-- A ordem dos jogadores é sorteada aleatoriamente ao início do jogo
-- Cada jogador tem um turno por rodada
-- No seu turno, você pode revelar UMA dica E dar UM palpite
-- Se errar, passa a vez para o próximo jogador
-- O primeiro a acertar ganha o ponto!
-- Há 5 dicas progressivas, das mais genéricas às mais específicas
-- O jogo inicia automaticamente com a primeira dica revelada quando todos os jogadores estiverem prontos
+- Partidas por canal do Discord (uma sessão ativa por canal).
+- Lobby com botões **Entrar** e **Pronto**.
+- Ordem de turno aleatória.
+- Revelação de dicas por número (`/dica <numero>`).
+- Palpite por turno (`/palpite <nome>`).
+- Dicas especiais suportadas nos cards:
+  - `skip_turn` (perde o palpite do turno)
+  - `anytime_guess` (palpite fora do turno, uso único)
+- Encerramento manual com revelação da resposta (`/desistir`).
 
-## 🤖 Comandos Disponíveis
+## Stack e requisitos
 
-### Comandos do Jogo
-- `/jogar` - Inicia uma nova partida (cria botões interativos)
-- `/dica` - Revela a próxima dica (uma por turno)
-- `/palpite <nome>` - Dá seu palpite sobre quem é o craque
-- `/desistir` - Encerra o jogo atual
+- Node.js (LTS recomendado)
+- MongoDB
+- Discord.js v14
 
-### Botões Interativos
-- **Entrar** 🎮 - Entra na partida (substitui o comando `/entrar`)
-- **Pronto** ✅ - Marca que você está pronto para começar
+Dependências principais:
 
-## 🏗️ Estrutura do Projeto
+- `discord.js`
+- `mongodb`
+- `dotenv`
 
-```
-quem-e-o-craque-bot/
-├── commands/
-│   └── game/           # Comandos do jogo
-│       ├── jogar.js
-│       ├── dica.js
-│       ├── palpite.js
-│       └── desistir.js
-├── data/
-│   └── players.json    # Banco de dados de jogadores
-├── events/             # Event handlers do Discord
-│   ├── interactionCreate.js
-│   ├── ready.js
-│   └── buttonInteraction.js
-├── game/
-│   └── GameManager.js  # Lógica principal do jogo
-├── deploy-commands.js  # Script para registrar comandos
-└── index.js           # Ponto de entrada
+## Instalação
+
+```bash
+git clone https://github.com/mathzpereira/quem-e-o-craque-bot.git
+cd quem-e-o-craque-bot
+npm install
 ```
 
-## 🚀 Instalação e Configuração
+## Configuração
 
-1. Clone o repositório
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
-3. Configure o `config.json` com suas credenciais do Discord
-4. Registre os comandos:
-   ```bash
-   node deploy-commands.js
-   ```
-5. Inicie o bot:
-   ```bash
-   node index.js
-   ```
+Crie um arquivo `.env` na raiz (ou use o `.env.example` como base):
 
-## 📦 Tecnologias
+```env
+DISCORD_TOKEN=seu_token_do_bot
+DISCORD_CLIENT_ID=seu_application_id
+DISCORD_GUILD_ID=seu_guild_id_de_desenvolvimento
+MONGO_URI=sua_connection_string_mongodb
+MONGO_DATABASE=quem-e-o-craque
+```
 
-- **Node.js** - Runtime JavaScript
-- **Discord.js v14** - Biblioteca para interagir com a API do Discord
-- **ESLint** - Linter para manter código limpo
+### Onde obter cada valor
 
-## 🔜 Próximas Funcionalidades
+- `DISCORD_TOKEN`: Discord Developer Portal → Application → **Bot**.
+- `DISCORD_CLIENT_ID`: Discord Developer Portal → **General Information** → Application ID.
+- `DISCORD_GUILD_ID`: ID do servidor (Developer Mode habilitado no Discord).
+- `MONGO_URI` e `MONGO_DATABASE`: instância MongoDB usada pelo projeto.
 
-- [ ] Sistema de ranking persistente
-- [ ] Mais jogadores no banco de dados
-- [ ] Categorias (brasileiros, europeus, lendas, etc)
-- [ ] Modo solo contra o bot
-- [ ] Dificuldades diferentes
-- [ ] Estatísticas por jogador
+## Primeira execução
 
-## 📝 Licença
+1. Registrar slash commands no servidor de desenvolvimento:
 
-Projeto educacional para aprendizado de Discord.js
+```bash
+node deploy-commands.js
+```
+
+2. Popular o banco com cards iniciais:
+
+```bash
+node seed-cards.js
+```
+
+3. Iniciar o bot:
+
+```bash
+node index.js
+```
+
+## Como jogar
+
+1. Use `/jogar` para criar a partida no canal.
+2. Jogadores entram no lobby com o botão **Entrar**.
+3. Todos marcam **Pronto**.
+4. Com a partida iniciada:
+   - no turno, revele uma dica com `/dica <numero>`;
+   - em seguida, tente adivinhar com `/palpite <nome>`.
+5. Para encerrar e revelar o craque, use `/desistir`.
+
+## Comandos
+
+| Comando | Descrição |
+| --- | --- |
+| `/jogar` | Cria uma nova sessão de jogo no canal atual |
+| `/dica <numero>` | Revela a dica do número informado (1 a 10) |
+| `/palpite <nome>` | Tenta adivinhar o jogador da rodada |
+| `/desistir` | Encerra a sessão atual e revela a resposta |
+
+## Arquitetura resumida
+
+- `index.js`: bootstrap do bot, conexão com MongoDB, carregamento dinâmico de comandos/eventos.
+- `deploy-commands.js`: registro de slash commands via REST.
+- `game/GameManager.js`:
+  - gerencia sessões em memória por `channelId`;
+  - controla turnos, regras e validação de resposta;
+  - aplica efeitos de dicas especiais.
+- `database/mongodb.js`: conexão e acesso à coleção `players`.
+- `seed-cards.js`: script idempotente para inserir/atualizar cards por `cardId`.
+
+## Estrutura do projeto
+
+```text
+.
+├── commands/game/         # Slash commands do jogo
+├── events/                # Handlers de eventos do Discord
+├── game/                  # Núcleo de regras e estado da sessão
+├── database/              # Conexão e acesso ao MongoDB
+├── deploy-commands.js     # Registro de comandos no Discord
+├── seed-cards.js          # Carga inicial/atualização de cards
+└── index.js               # Entrada principal do bot
+```
+
+## Troubleshooting
+
+### `MONGO_URI and MONGO_DATABASE must be defined`
+
+As variáveis de ambiente do MongoDB não foram carregadas corretamente. Revise o `.env`.
+
+### Comandos não aparecem no servidor
+
+- Confirme `DISCORD_CLIENT_ID` e `DISCORD_GUILD_ID`.
+- Rode novamente:
+
+```bash
+node deploy-commands.js
+```
+
+### Bot não inicia com erro de token
+
+Verifique `DISCORD_TOKEN` e se o token é do bot correto no Developer Portal.
+
+## Roadmap
+
+- Ranking persistente
+- Mais cards e categorias
+- Estatísticas por jogador
+- Modos adicionais de jogo
+
+## Licença
+
+Projeto educacional para aprendizado de Discord.js.
