@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const http = require('node:http');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { connectDB, closeDB } = require('./database/mongodb');
@@ -8,6 +9,7 @@ if (fs.existsSync('.env')) {
 }
 
 const token = process.env.DISCORD_TOKEN || require('./config.json').token;
+const port = Number(process.env.PORT);
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -52,5 +54,26 @@ process.on('SIGINT', async () => {
 	await closeDB();
 	process.exit(0);
 });
+
+if (Number.isInteger(port) && port > 0) {
+	const healthServer = http.createServer((req, res) => {
+		if (req.url === '/health') {
+			const payload = {
+				status: 'ok',
+				discordReady: client.isReady(),
+			};
+			res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+			res.end(JSON.stringify(payload));
+			return;
+		}
+
+		res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+		res.end('Quem e o Craque bot is running');
+	});
+
+	healthServer.listen(port, () => {
+		console.log(`🌐 Healthcheck HTTP disponível na porta ${port}`);
+	});
+}
 
 client.login(token);
